@@ -56,6 +56,8 @@ class ReportingController {
 		require_once('timed.php');
 		timed(); // Tick tack, time is ticking.
 		
+		$options['state-folder'] = realpath($options['state-folder']);
+		
 		$reporter = new \bonanza\reporting\Reporter($options['state-folder']);
 		/* @var $reporter Reporter */
 		$controller = new ReportingController($options, $reporter);

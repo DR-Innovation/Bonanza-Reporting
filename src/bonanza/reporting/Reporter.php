@@ -12,11 +12,11 @@ class Reporter {
 		
 		$cwd = getcwd();
 		if(!is_dir($stateFolderPath)) {
-			throw new \RuntimeException("The state folder ($stateFolderPath) relative to ($cwd) has to be a real folder on the system.");
+			throw new \RuntimeException("The state folder has to be a real folder on the system.");
 		} else if(!is_dir($insertedStateFolderPath)) {
-			throw new \RuntimeException("The inserted state folder ($insertedStateFolderPath) relative to ($cwd) has to be a real folder on the system.");
+			throw new \RuntimeException("The inserted state folder has to be a real folder on the system.");
 		} else if(!is_dir($deletedStateFolderPath)) {
-			throw new \RuntimeException("The deleted state folder ($deletedStateFolderPath) relative to ($cwd) has to be a real folder on the system.");
+			throw new \RuntimeException("The deleted state folder has to be a real folder on the system.");
 		}
 		
 		$this->pastPublishedObjects = array();
