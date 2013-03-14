@@ -56,7 +56,7 @@ class ReportingController {
 		require_once('timed.php');
 		timed(); // Tick tack, time is ticking.
 		
-		$stateFolder = realpath($options['state-folder']);
+		//$stateFolder = realpath($options['state-folder']);
 		if($options['state-folder'] === false || !is_dir($options['state-folder'])) {
 			var_dump($stateFolder);
 			die('The state-folder provided ('.$options['state-folder'].') is not a readable directory.');
