@@ -26,10 +26,10 @@ class ReportingController {
 		
 		$options = self::extractOptionsFromArguments($arguments);
 		
-		if(key_exists('PATH', $_SERVER)) {
-			set_include_path(get_include_path() . PATH_SEPARATOR . $_SERVER['PATH']);
+		if(key_exists('INCLUDE_PATH', $_SERVER)) {
+			set_include_path(get_include_path() . PATH_SEPARATOR . $_SERVER['INCLUDE_PATH']);
 		} else {
-			die("You have to specify the PATH environment variable.");
+			die("You have to specify the INCLUDE_PATH environment variable.");
 		}
 		
 		if(key_exists('CHAOS_URL', $_SERVER)) {
