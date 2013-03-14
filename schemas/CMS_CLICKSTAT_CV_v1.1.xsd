@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:simpleType name="transactionType">
+	  <xs:restriction base="xs:string">
+		<xs:enumeration value="I"/>
+		<xs:enumeration value="U"/>
+		<xs:enumeration value="D"/>
+	  </xs:restriction>
+	</xs:simpleType> 
+	
+	<xs:simpleType name="productionNumberType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9]{11}"/>
+    </xs:restriction>
+  </xs:simpleType>
+	
+
+	<xs:element name="CMS_CLICK">
+	  <xs:complexType>  
+		<xs:sequence>
+		  <xs:element name="RAPID" type="xs:string" minOccurs="0"/> 
+		  <xs:element name="CHANNELID" type="xs:integer"/>
+		  <xs:element name="MEDIAID" type="xs:string"/>
+		  <xs:element name="TRANSACTIONTYPE" type="transactionType"/> 
+		  <xs:element name="NAME" type="xs:string" minOccurs="0"/>
+		  <xs:element name="DESCRIPTION" type="xs:string" minOccurs="0"/>
+		  <xs:element name="FILENAME" type="xs:string"/>
+		  <xs:element name="PATH" type="xs:string"/>
+		  <xs:element name="STREAMDURATION" type="xs:integer"/> 
+		  <xs:element name="URL" type="xs:string"/>
+		  <xs:element name="ITEMID" type="xs:integer" minOccurs="0"/>
+		  <xs:element name="PRODUCTIONNUMBER" type="productionNumberType" minOccurs="0"/> 
+		  <xs:element name="MOBSMPTEUMID" type="xs:string" minOccurs="0"/>
+		  <xs:element name="MUSAID" type="xs:integer" minOccurs="0"/> 
+		  <xs:element name="PUBLISHINGTIMESTART" type="xs:dateTime"/>
+		  <xs:element name="PUBLISHINGTIMEEND" type="xs:dateTime" minOccurs="0"/>	  
+		  <xs:element name="AGREEMENTID" type="xs:integer" minOccurs="0"/>
+		  <xs:element name="ORIGINALTITLE" type="xs:string" minOccurs="0"/>
+		  <xs:element name="SENTFIRSTTIME" type="xs:dateTime" minOccurs="0"/>      
+		</xs:sequence>
+	  </xs:complexType>
+	</xs:element>
+</xs:schema> 
