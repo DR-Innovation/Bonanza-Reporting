@@ -56,8 +56,12 @@ class ReportingController {
 		require_once('timed.php');
 		timed(); // Tick tack, time is ticking.
 		
-		$dir = opendir($options['state-folder']) or die('The state-folder provided ('.$options['state-folder'].') is not a readable directory.');
-		closedir($dir);
+		$stateFolder = realpath($options['state-folder']);
+		if($options['state-folder'] === false || !is_dir($options['state-folder'])) {
+			die('The state-folder provided ('.$options['state-folder'].') is not a readable directory.');
+		} else {
+			$options['state-folder'] = $stateFolder;
+		}
 		
 		$reporter = new \bonanza\reporting\Reporter($options['state-folder']);
 		/* @var $reporter Reporter */
