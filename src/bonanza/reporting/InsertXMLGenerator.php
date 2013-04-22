@@ -38,8 +38,8 @@ class InsertXMLGenerator extends BaseXMLGenerator {
 		$result->addChild('CHANNELID', self::CHANNELID);
 		$result->addChild('MEDIAID', $object->GUID);
 		$result->addChild('TRANSACTIONTYPE', 'I');
-		$result->addChild('NAME', strval($metadata->Title));
-		$result->addChild('DESCRIPTION', strval($metadata->Description));
+		$result->addChild('NAME', htmlentities(strval($metadata->Title)));
+		$result->addChild('DESCRIPTION', htmlentities(strval($metadata->Description)));
 		
 		$file = self::extractFileURL($object);
 		if($file == null) {

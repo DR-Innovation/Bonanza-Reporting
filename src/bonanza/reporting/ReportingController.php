@@ -195,6 +195,7 @@ class ReportingController {
 	}
 	
 	protected function transferStateToFTP() {
+		$this->ensureFTPConnection();
 		$this->uploadAllFilesInFolder($this->_options['state-folder'] . DIRECTORY_SEPARATOR . 'inserted');
 		$this->uploadAllFilesInFolder($this->_options['state-folder'] . DIRECTORY_SEPARATOR . 'deleted');
 		// transferStateToFTP
