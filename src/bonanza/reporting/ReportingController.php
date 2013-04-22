@@ -126,6 +126,14 @@ class ReportingController {
 					throw new \RuntimeException("FTP Username / password didn't match.");
 				}
 			}
+		} else {
+			$response = @ftp_nlist($this->_ftp, ".");
+			if($response === false) {
+				$this->_ftp = null;
+				echo "The FTP seemed to have timed out, reconnecting ...";
+				// Reconnect ...
+				$this->ensureFTPConnection();
+			}
 		}
 		return $this->_ftp;
 	}
