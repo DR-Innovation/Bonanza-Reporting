@@ -130,7 +130,7 @@ class ReportingController {
 			$response = @ftp_nlist($this->_ftp, ".");
 			if($response === false) {
 				$this->_ftp = null;
-				echo "The FTP seemed to have timed out, reconnecting ...";
+				echo "The FTP seemed to have timed out, reconnecting ...\n";
 				// Reconnect ...
 				$this->ensureFTPConnection();
 			}
