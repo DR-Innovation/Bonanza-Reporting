@@ -252,7 +252,7 @@ class ReportingController {
 		$objectIndex = 0;
 		$debugging = array_key_exists('debug', $this->_options);
 		do {
-			$query = sprintf("(FolderTree:%u AND ObjectTypeID:%u)", intval($this->_options['folder-id']), intval($this->_options['object-type-id']));
+			$query = sprintf("(FolderID:%u AND ObjectTypeID:%u)", intval($this->_options['folder-id']), intval($this->_options['object-type-id']));
 			// TODO implement this without the use of an accesspoint guid when the service supports the includeAccessPointGUIDs
 			$response = $this->_chaos->Object()->Get($query, null, null, $pageIndex, $pageSize, true, true, true, true);
 			
