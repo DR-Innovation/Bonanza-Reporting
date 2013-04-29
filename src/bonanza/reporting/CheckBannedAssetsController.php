@@ -54,6 +54,20 @@ class CheckBannedAssetsController {
 		echo "Connecting to $CHAOS_URL\n";
 		$this->_chaos = new \CHAOS\SessionRefreshingPortalClient(null, $CHAOS_URL, self::CLIENT_GUID);
 		
+		if(key_exists('CHAOS_EMAIL', $_SERVER) && key_exists('CHAOS_PASSWORD', $_SERVER)) {
+			printf("Authenticating session: ");
+			$email = $_SERVER['CHAOS_EMAIL'];
+			$password = $_SERVER['CHAOS_PASSWORD'];
+			$response = $this->_chaos->EmailPassword()->Login($email, $password);
+			if($response->WasSuccess() && $response->EmailPassword()->WasSuccess()) {
+				printf("Success.\n");
+			} else {
+				printf("Failed ...\n");
+			}
+		} else {
+			die("Woups .. the CHAOS_EMAIL or CHAOS_PASSWORD environment variable has to be set.");
+		}
+		
 		$datafile = $options['banned-datafile'];
 		if(!is_file($datafile)) {
 			throw new \InvalidArgumentException("The datafile of banned productions IDs was not found, relative to ".getcwd());
@@ -75,12 +89,25 @@ class CheckBannedAssetsController {
 	function start() {
 		foreach($this->_bannedProductionIDs as $productionID) {
 			printf("Checking if asset with production ID %s is published at accesspoint %s.\n", $productionID, $this->_accessPointGUID);
-			$query = sprintf('DKA-ExternalIdentifier:"%s"', $productionID);
-			$response = $this->_chaos->Object()->Get($query, null, $this->_accessPointGUID, 0, 1);
+			// $query = sprintf('DKA-ExternalIdentifier:"%s"', $productionID);
+			$query = sprintf('m5906a41b-feae-48db-bfb7-714b3e105396_da_all:"%s" OR m00000000-0000-0000-0000-000063c30000_da_all:"%s"', $productionID, $productionID);
+			$response = $this->_chaos->Object()->Get($query, null, $this->_accessPointGUID, 0, 100, false, false, false, true);
 			if($response->MCM()->TotalCount() > 0) {
 				$object = $response->MCM()->Results();
 				$object = $object[0];
-				printf("It looks like the asset with production-id %s is published as object # %s.\n", $productionID, $object->GUID);
+				printf("!!! It looks like the asset with production-id %s is published as object # %s.\n", $productionID, $object->GUID);
+				// Unpublish!
+				foreach($response->MCM()->Results() as $object) {
+					foreach($object->AccessPoints as $accesspoint) {
+						printf("Unpublishing Object #%s from accesspoint #%s.\n", $object->GUID, $accesspoint->AccessPointGUID);
+						$response = $this->_chaos->Object()->SetPublishSettings($object->GUID, $accesspoint->AccessPointGUID);
+						if(!$response->WasSuccess()) {
+							throw new \RuntimeException("Error unpublishing object: ".$response->Error()->Message());
+						} else if(!$response->MCM()->WasSuccess()) {
+							throw new \RuntimeException("[MCM] Error unpublishing object: ".$response->MCM()->Error()->Message());
+						}
+					}
+				}
 			}
 		}
 	}
