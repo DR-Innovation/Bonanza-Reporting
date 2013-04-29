@@ -3,6 +3,7 @@ namespace bonanza\reporting;
 class InsertXMLGenerator extends BaseXMLGenerator {
 	
 	const CHANNELID = 88;
+	const DATETIME_FORMAT = 'c';//'Y-m-d G:i:s';
 	protected static $PRIORITIZED_FORMAT_IDS = array(2, 1);
 	
 	public static function generateXML($object) {
@@ -38,8 +39,8 @@ class InsertXMLGenerator extends BaseXMLGenerator {
 		$result->addChild('CHANNELID', self::CHANNELID);
 		$result->addChild('MEDIAID', $object->GUID);
 		$result->addChild('TRANSACTIONTYPE', 'I');
-		$result->addChild('NAME', htmlentities(strval($metadata->Title)));
-		$result->addChild('DESCRIPTION', htmlentities(strval($metadata->Description)));
+		$result->addChild('NAME', strval($metadata->Title));
+		$result->addChild('DESCRIPTION', strval($metadata->Description));
 		
 		$file = self::extractFileURL($object);
 		if($file == null) {
@@ -72,10 +73,10 @@ class InsertXMLGenerator extends BaseXMLGenerator {
 			}
 		}
 		
-		$result->addChild('PUBLISHINGTIMESTART', date('Y-m-d G:i:s', self::extractEarliestPublishDate($object)));
+		$result->addChild('PUBLISHINGTIMESTART', date(self::DATETIME_FORMAT, self::extractEarliestPublishDate($object)));
 		$latestPublishDate = self::extractLatestPublishDate($object);
 		if($latestPublishDate != null) {
-			$result->addChild('PUBLISHINGTIMEEND',  date('Y-m-d G:i:s', $latestPublishDate));
+			$result->addChild('PUBLISHINGTIMEEND',  date(self::DATETIME_FORMAT, $latestPublishDate));
 		}
 		
 		return $result;

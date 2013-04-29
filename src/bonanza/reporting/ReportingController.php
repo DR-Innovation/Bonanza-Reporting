@@ -5,6 +5,8 @@ namespace bonanza\reporting;
 class ReportingController {
 	
 	const CLIENT_GUID = '7257a149-4d54-4a8f-9364-501b341a0856';
+	const OBJECTS_PROCESSED_WHEN_DEBUGGING = 10;
+	const VALIDATION_SCHEMA = '../../../schemas/CMS_CLICKSTAT_CV_v1.1.xsd';
 	
 	/**
 	 * The CHAOS client.
@@ -13,6 +15,9 @@ class ReportingController {
 	protected $_chaos;
 	
 	protected $_options;
+	
+	protected $_validationSchema;
+	
 	/**
 	 * The reporter to use when parsing objects.
 	 * @var \bonanza\Reporter
@@ -111,6 +116,11 @@ class ReportingController {
 		echo "Connecting to $CHAOS_URL\n";
 		$this->_chaos = new \CHAOS\SessionRefreshingPortalClient(null, $CHAOS_URL, self::CLIENT_GUID);
 		$this->_chaos->EmailPassword()->Login($options['email'], $options['password']);
+		
+		// Load validation schema.
+		if(!is_file(self::VALIDATION_SCHEMA)) {
+			throw new \RuntimeException("The location of the validation schema is invalid.");
+		}
 	}
 	
 	protected function ensureFTPConnection() {
@@ -140,7 +150,11 @@ class ReportingController {
 	
 	protected function saveXMLToFile($xml, $filename) {
 		$dom = dom_import_simplexml($xml)->ownerDocument;
+		/* @var $dom \DOMDocument */
 		$dom->formatOutput = true;
+		if(!$dom->schemaValidate(self::VALIDATION_SCHEMA)) {
+			throw new \RuntimeException("Couldn't save XML which didn't match the validation schema.");
+		}
 		$xml = $dom->saveXML();
 		
 		$filename = $this->_options['state-folder'] . DIRECTORY_SEPARATOR . $filename;
@@ -249,9 +263,12 @@ class ReportingController {
 				printf("Processing object # %u of %u objects.\n", $objectIndex, $totalCount);
 				$this->_reporter->processObject($object->GUID, $object);
 				$objectIndex++;
+				if($debugging && $objectIndex > self::OBJECTS_PROCESSED_WHEN_DEBUGGING) {
+					break 2;
+				}
 			}
 			$pageIndex++;
-		} while($pageIndex < $totalPages && !$debugging);
+		} while($pageIndex < $totalPages);
 		
 		// Computing difference.
 		$difference = $this->_reporter->diff();
