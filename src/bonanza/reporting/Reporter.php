@@ -1,5 +1,7 @@
 <?php
 namespace bonanza\reporting;
+use \bonanza\reporting\generators\InsertXMLGenerator;
+use \bonanza\reporting\generators\DeleteXMLGenerator;
 class Reporter {
 	
 	protected $pastPublishedObjects;

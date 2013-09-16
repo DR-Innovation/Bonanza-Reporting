@@ -1,13 +1,14 @@
 <?php
-namespace bonanza\reporting;
-class InsertXMLGenerator extends BaseXMLGenerator {
+namespace bonanza\reporting\xml\chaos;
+class InsertXMLGenerator extends \bonanza\reporting\xml\BaseXMLGenerator {
 	
 	const CHANNELID = 88;
 	const DATETIME_FORMAT = 'c';//'Y-m-d G:i:s';
-	protected static $PRIORITIZED_FORMAT_IDS = array(2, 1);
+	protected static $PRIORITIZED_FORMAT_IDS = array(8, 23);
 	
 	public static function generateXML($object) {
-		$metadata = self::getMetadata($object, self::DKA2_METADATASCHEMAGUID);
+		assert($object instanceof \CHAOS\Portal\Client\Data\Object);
+		$metadata = $object->get_metadata(self::DKA2_METADATASCHEMAGUID);
 		if($metadata == null) {
 			printf("\tThe correct metadataschema was not associated with the object.\n");
 			return null;
@@ -39,12 +40,12 @@ class InsertXMLGenerator extends BaseXMLGenerator {
 		$result->addChild('CHANNELID', self::CHANNELID);
 		$result->addChild('MEDIAID', $object->GUID);
 		$result->addChild('TRANSACTIONTYPE', 'I');
-		$result->addChild('NAME', strval($metadata->Title));
-		$result->addChild('DESCRIPTION', strval($metadata->Description));
+		$result->addChild('NAME', htmlspecialchars(strval($metadata->Title)));
+		$result->addChild('DESCRIPTION', htmlspecialchars(strval($metadata->Description)));
 		
 		$file = self::extractFileURL($object);
 		if($file == null) {
-			printf("\tNo files of a known type were associated with the object.\n");
+			error_log("No files of a known type were associated with the object.");
 			return null;
 		}
 			
@@ -66,8 +67,9 @@ class InsertXMLGenerator extends BaseXMLGenerator {
 		foreach($metadata->Metafield as $metafield) {
 			if($metafield->Key == "ProductionId") {
 				$productionId = strval($metafield->Value);
-				if(strlen($productionId) == 11) {
-					$result->addChild('PRODUCTIONNUMBER', $productionId);
+				$productionNumberMatchs = array();
+				if(preg_match('/[0-9]{11}/', $productionId, $productionNumberMatchs) === 1) {
+					$result->addChild('PRODUCTIONNUMBER', $productionNumberMatchs[0]);
 					break;
 				}
 			}
@@ -95,8 +97,9 @@ class InsertXMLGenerator extends BaseXMLGenerator {
 			}
 		}
 		// No hope ..
+		error_log("Couldn't find a file URL for the object " . $object->GUID);
 		foreach($object->Files as $file) {
-			printf("\tSkipping file of type #%u (%s)\n", $file->FormatID, $file->URL);
+			error_log(sprintf("Skipping file of type #%u (%s)", $file->FormatID, $file->URL));
 		}
 		return null;
 	}
