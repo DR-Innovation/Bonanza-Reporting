@@ -27,6 +27,7 @@ class BonanzaReportingUtility {
 	*/
 	
 	public static $MODES = array(
+		'clean' => '\bonanza\reporting\modes\CleanMode',
 		'restore' => '\bonanza\reporting\modes\RestoreMode',
 		'generate' => '\bonanza\reporting\modes\GenerateMode',
 		'commit' => '\bonanza\reporting\modes\CommitMode'
@@ -155,12 +156,14 @@ class BonanzaReportingUtility {
 		require_once('timed.php');
 		timed(); // Tick tack, time is ticking.
 		
-		$mode = self::$_options['mode'];
-		echo "Starting the utility in '$mode' mode.\n";
-		$mode_class = self::$MODES[$mode];
-		$mode_instance = new $mode_class(self::$_options);
-		
-		$mode_instance->start();
+		$modes = explode(',', self::$_options['mode']);
+		foreach($modes as $mode) {
+			echo "Starting the utility in '$mode' mode.\n";
+			$mode_class = self::$MODES[$mode];
+			$mode_instance = new $mode_class(self::$_options);
+			
+			$mode_instance->start();
+		}
 	}
 	
 	static function saveXMLToFile($xml, $path, $filename) {

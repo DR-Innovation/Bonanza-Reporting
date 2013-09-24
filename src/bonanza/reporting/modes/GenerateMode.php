@@ -18,6 +18,7 @@ class GenerateMode extends BaseMode {
 		parent::__construct($options);
 		self::$_chaos = new \CHAOS\Portal\Client\EnhancedPortalClient($options['chaos-url'], self::CLIENT_GUID);
 		self::$_chaos->EmailPassword()->Login($options['chaos-email'], $options['chaos-password']);
+		printf("Created an authenticated session on GUID = %s.", self::$_chaos->SessionGUID());
 	}
 	
 	public function start() {
