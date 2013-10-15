@@ -43,6 +43,7 @@ class BonanzaReportingUtility {
 		'FTP_USERNAME' => 'ftp-username',
 		'FTP_PASSWORD' => 'ftp-password',
 		'FTP_FOLDER' => 'ftp-folder',
+		'DBDUMP' => 'dbdump'
 	);
 	
 	protected static $_options;
