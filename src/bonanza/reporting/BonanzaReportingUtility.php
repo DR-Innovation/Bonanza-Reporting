@@ -159,7 +159,7 @@ class BonanzaReportingUtility {
 		require_once('timed.php');
 		timed(); // Tick tack, time is ticking.
 		
-		foreach($modes as $mode) {
+		foreach(self::$_options['mode'] as $mode) {
 			if(array_key_exists($mode, self::$MODES)) {
 				echo "Starting the utility in '$mode' mode.\n";
 				$mode_class = self::$MODES[$mode];
