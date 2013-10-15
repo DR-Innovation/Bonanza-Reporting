@@ -77,11 +77,11 @@ class BonanzaReportingUtility {
 	
 	public static function sanityCheckOptions(&$options) {
 		
-		if(!array_key_exists('mode', $options) || !array_key_exists($options['mode'], self::$MODES)) {
+		if(!array_key_exists('mode', $options)) {
 			error_log('Mode not specified or unrecognized.');
 			exit -2;
 		}
-		
+	
 		if(!array_key_exists('state-folder',  $options)) {
 			error_log('You have to provide a state-folder.');
 			exit -3;
@@ -144,6 +144,9 @@ class BonanzaReportingUtility {
 		
 		self::sanityCheckOptions(self::$_options);
 		self::ensureStateFolders(self::$_options['state-folder']);
+
+		// Turn the mode into an array of modes, split on ','
+		self::$_options['mode'] = explode(',', self::$_options['mode']);
 		
 		// Reuse the case sensitive autoloader.
 		require_once('CaseSensitiveAutoload.php');
@@ -156,13 +159,16 @@ class BonanzaReportingUtility {
 		require_once('timed.php');
 		timed(); // Tick tack, time is ticking.
 		
-		$modes = explode(',', self::$_options['mode']);
 		foreach($modes as $mode) {
-			echo "Starting the utility in '$mode' mode.\n";
-			$mode_class = self::$MODES[$mode];
-			$mode_instance = new $mode_class(self::$_options);
-			
-			$mode_instance->start();
+			if(array_key_exists($mode, self::$MODES)) {
+				echo "Starting the utility in '$mode' mode.\n";
+				$mode_class = self::$MODES[$mode];
+				$mode_instance = new $mode_class(self::$_options);
+					
+				$mode_instance->start();
+			} else {
+				echo "Skipping execution of in an unknown mode '$mode'.";
+			}
 		}
 	}
 	
