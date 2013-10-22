@@ -4,6 +4,8 @@ class CommitMode extends BaseMode {
 	
 	protected $_ftp;
 	
+	const FILE_TRANSFER_RETRIES = 3;
+	
 	public function start() {
 		echo "Starting to commit the difference state to the FTP.\n";
 		$difference = $this->getDifferenceObjects();
@@ -13,7 +15,18 @@ class CommitMode extends BaseMode {
 		// Go throug all files and transfer them one by one, removing the deleted files from the as-is folder.
 		$objects_processed = 0;
 		foreach($difference as $GUID => $path) {
-			$success = $this->transferFile($path);
+			$success = false; // For now ..
+			$tries = 0;
+			do {
+				if($tries > 0) {
+					echo "Warning: File transfer of $path failed, ensuring FTP connection and retrying.";
+					usleep(500000); // Wait 500 ms
+					$this->ensureFTPConnection();
+				}
+				$success = $this->transferFile($path);
+				$tries++;
+			} while(!$success && $tries < self::FILE_TRANSFER_RETRIES);
+			
 			$xml = simplexml_load_file($path);
 			if($success) {
 				$asIsPath = $this->_options['state-folder'] . DIRECTORY_SEPARATOR . 'as-is' . DIRECTORY_SEPARATOR . $GUID . '.xml';
@@ -36,11 +49,10 @@ class CommitMode extends BaseMode {
 					throw new \RuntimeException("Tried to delete $path, but failed.");
 				}
 			} else {
-				throw new \RuntimeException("Couldn't transfer $path to the FTP.");
+				throw new \RuntimeException("Couldn't transfer $path to the FTP after " . self::FILE_TRANSFER_RETRIES . " retries.");
 			}
 			$objects_processed++;
 			\bonanza\reporting\BonanzaReportingUtility::progress_update($objects_processed);
-			usleep(100000); // Wait 100 ms
 		}
 	}
 	
