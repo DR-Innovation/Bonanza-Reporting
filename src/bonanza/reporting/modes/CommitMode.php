@@ -104,6 +104,7 @@ class CommitMode extends BaseMode {
 				if(!$success) {
 					throw new \RuntimeException("FTP Username / password didn't match.");
 				}
+				usleep(500000); // Wait 500 ms
 				$success = ftp_pasv($this->_ftp, true);
 				if(!$success) {
 					throw new \RuntimeException("Couldn't turn the passive FTP mode on.");
