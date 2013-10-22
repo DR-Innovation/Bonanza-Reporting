@@ -21,7 +21,7 @@ class CommitMode extends BaseMode {
 				if($tries > 0) {
 					echo "Warning: File transfer of $path failed, ensuring FTP connection and retrying.";
 					usleep(500000); // Wait 500 ms
-					$this->ensureFTPConnection();
+					$this->resetFTPConnection();
 				}
 				$success = $this->transferFile($path);
 				$tries++;
@@ -120,6 +120,13 @@ class CommitMode extends BaseMode {
 			}
 		}
 		return $this->_ftp;
+	}
+	
+	protected function resetFTPConnection() {
+		// Close connection if open.
+		@ftp_close($this->_ftp);
+		$this->_ftp = null; // Unset.
+		return $this->ensureFTPConnection();
 	}
 	
 	protected function transferFile($path) {
