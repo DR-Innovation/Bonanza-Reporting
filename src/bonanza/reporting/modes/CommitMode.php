@@ -40,6 +40,7 @@ class CommitMode extends BaseMode {
 			}
 			$objects_processed++;
 			\bonanza\reporting\BonanzaReportingUtility::progress_update($objects_processed);
+			usleep(100000); // Wait 100 ms
 		}
 	}
 	
