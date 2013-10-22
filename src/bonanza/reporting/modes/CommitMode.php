@@ -5,6 +5,7 @@ class CommitMode extends BaseMode {
 	protected $_ftp;
 	
 	const FILE_TRANSFER_RETRIES = 3;
+	const FTP_CONNECT_RETRIES = 3;
 	
 	public function start() {
 		echo "Starting to commit the difference state to the FTP.\n";
@@ -93,40 +94,55 @@ class CommitMode extends BaseMode {
 	}
 
 	protected function ensureFTPConnection() {
-		if($this->_ftp == null) {
-			$hostname = strval($this->_options['ftp-hostname']);
-			$port = intval($this->_options['ftp-port']);
-			$this->_ftp = ftp_connect($hostname, $port);
-			if($this->_ftp === false) {
-				throw new \RuntimeException("Couldn't create the FTP resource: $hostname:$port.");
-			} else {
-				$success = ftp_login($this->_ftp, $this->_options['ftp-username'], $this->_options['ftp-password']);
-				if(!$success) {
-					throw new \RuntimeException("FTP Username / password didn't match.");
+		$last_exception = null;
+		do {
+			try {
+				if($this->_ftp == null) {
+					$hostname = strval($this->_options['ftp-hostname']);
+					$port = intval($this->_options['ftp-port']);
+					$this->_ftp = ftp_connect($hostname, $port);
+					if($this->_ftp === false) {
+						throw new \RuntimeException("Couldn't create the FTP resource: $hostname:$port.");
+					} else {
+						$success = ftp_login($this->_ftp, $this->_options['ftp-username'], $this->_options['ftp-password']);
+						if(!$success) {
+							throw new \RuntimeException("FTP Username / password didn't match.");
+						}
+						usleep(500000); // Wait 500 ms
+						$success = ftp_pasv($this->_ftp, true);
+						if(!$success) {
+							throw new \RuntimeException("Couldn't turn the passive FTP mode on.");
+						}
+					}
+				} else {
+					$response = @ftp_nlist($this->_ftp, ".");
+					if($response === false) {
+						$this->_ftp = null;
+						echo "The FTP seemed to have timed out, reconnecting ...\n";
+						// Reconnect ...
+						return $this->resetFTPConnection();
+					}
 				}
-				usleep(500000); // Wait 500 ms
-				$success = ftp_pasv($this->_ftp, true);
-				if(!$success) {
-					throw new \RuntimeException("Couldn't turn the passive FTP mode on.");
-				}
+				return $this->_ftp;
+			} catch(\Exception $e) {
+				echo "Warning: " . $e->getMessage() . " - retrying to ensure a connection.\n";
+				$last_exception = $e;
+				$this->resetFTPConnection(false);
 			}
-		} else {
-			$response = @ftp_nlist($this->_ftp, ".");
-			if($response === false) {
-				$this->_ftp = null;
-				echo "The FTP seemed to have timed out, reconnecting ...\n";
-				// Reconnect ...
-				$this->ensureFTPConnection();
-			}
-		}
-		return $this->_ftp;
+			$tries++;
+		} while($tries < self::FTP_CONNECT_RETRIES);
+		throw $exception;
 	}
 	
-	protected function resetFTPConnection() {
+	protected function resetFTPConnection($reestablish = true) {
 		// Close connection if open.
 		@ftp_close($this->_ftp);
 		$this->_ftp = null; // Unset.
-		return $this->ensureFTPConnection();
+		if($reestablish) {
+			return $this->ensureFTPConnection();
+		} else {
+			return true;
+		}
 	}
 	
 	protected function transferFile($path) {
@@ -137,7 +153,7 @@ class CommitMode extends BaseMode {
 		$ftp_folder = '/' . trim($ftp_folder, './');
 		
 		if($working_directory !== $ftp_folder) {
-			echo "Chaning directory from '$working_directory' to '$ftp_folder'.\n";
+			echo "Changing directory from '$working_directory' to '$ftp_folder'.\n";
 			$success = ftp_chdir($this->_ftp, $ftp_folder);
 			if(!$success) {
 				throw new \RuntimeException("Couldn't change directory to $ftp_folder");
