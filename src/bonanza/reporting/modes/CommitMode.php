@@ -109,11 +109,20 @@ class CommitMode extends BaseMode {
 	}
 	
 	protected function transferFile($path) {
+		$working_directory = ftp_pwd($this->_ftp);
 		$ftp_folder = strval($this->_options['ftp-folder']);
-		if(ftp_chdir($this->_ftp, $ftp_folder)) {
-			return ftp_put($this->_ftp, pathinfo($path, PATHINFO_BASENAME), $path, FTP_ASCII);
-		} else {
-			throw new \RuntimeException("Couldn't change directory to $ftp_folder");
+		// Finding a standardized representation of the directories.
+		$working_directory = '/' . trim($working_directory, './');
+		$ftp_folder = '/' . trim($ftp_folder, './');
+		
+		if($working_directory !== $ftp_folder) {
+			echo "Chaning directory from '$working_directory' to '$ftp_folder'.\n";
+			$success = ftp_chdir($this->_ftp, $ftp_folder);
+			if(!$success) {
+				throw new \RuntimeException("Couldn't change directory to $ftp_folder");
+			}
 		}
+		// We have the correct remote directory.
+		return ftp_put($this->_ftp, pathinfo($path, PATHINFO_BASENAME), $path, FTP_ASCII);
 	}
 }
